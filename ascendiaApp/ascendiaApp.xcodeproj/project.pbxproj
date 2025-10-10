@@ -29,20 +29,38 @@
 		CC03B0922E9727330004963F /* ascendiaAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ascendiaAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CC6CBDAE2E99B0C400BC710D /* Exceptions for "ascendiaApp" folder in "ascendiaApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ascendiaAppUITests/ascendiaAppUITests.swift,
+				ascendiaAppUITests/ascendiaAppUITestsLaunchTests.swift,
+			);
+			target = CC03B0762E9727320004963F /* ascendiaApp */;
+		};
+		CC6CBDAF2E99B0C400BC710D /* Exceptions for "ascendiaApp" folder in "ascendiaAppUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ascendiaAppUITests/ascendiaAppUITests.swift,
+				ascendiaAppUITests/ascendiaAppUITestsLaunchTests.swift,
+			);
+			target = CC03B0912E9727330004963F /* ascendiaAppUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CC03B0792E9727320004963F /* ascendiaApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CC6CBDAE2E99B0C400BC710D /* Exceptions for "ascendiaApp" folder in "ascendiaApp" target */,
+				CC6CBDAF2E99B0C400BC710D /* Exceptions for "ascendiaApp" folder in "ascendiaAppUITests" target */,
+			);
 			path = ascendiaApp;
 			sourceTree = "<group>";
 		};
 		CC03B08B2E9727330004963F /* ascendiaAppTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ascendiaAppTests;
-			sourceTree = "<group>";
-		};
-		CC03B0952E9727330004963F /* ascendiaAppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ascendiaAppUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -77,7 +95,6 @@
 			children = (
 				CC03B0792E9727320004963F /* ascendiaApp */,
 				CC03B08B2E9727330004963F /* ascendiaAppTests */,
-				CC03B0952E9727330004963F /* ascendiaAppUITests */,
 				CC03B0782E9727320004963F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,9 +169,6 @@
 			);
 			dependencies = (
 				CC03B0942E9727330004963F /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				CC03B0952E9727330004963F /* ascendiaAppUITests */,
 			);
 			name = ascendiaAppUITests;
 			packageProductDependencies = (

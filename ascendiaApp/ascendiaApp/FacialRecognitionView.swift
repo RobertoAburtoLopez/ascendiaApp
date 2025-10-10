@@ -20,20 +20,21 @@ struct FacialRecognitionView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        ZStack {
-            // Fondo con degradado suave en lilas/rosas
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.95, green: 0.92, blue: 0.98),
-                    Color(red: 0.98, green: 0.94, blue: 0.96)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                // Fondo con degradado suave en lilas/rosas
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.95, green: 0.92, blue: 0.98),
+                        Color(red: 0.98, green: 0.94, blue: 0.96)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 28) {
+                ScrollView {
+                    VStack(spacing: 28) {
                     // Header con ícono de escudo
                     VStack(spacing: 12) {
                         // Ícono redondeado con escudo
@@ -311,16 +312,20 @@ struct FacialRecognitionView: View {
                         Spacer()
                             .frame(height: 40)
                     }
+                    }
                 }
             }
-        }
-        .onAppear {
-            // Iniciar desde 75%
-            progressWidth = 0.75
+            .navigationDestination(isPresented: $showSuccessNavigation) {
+                RegistroCompletadoView()
+            }
+            .onAppear {
+                // Iniciar desde 75%
+                progressWidth = 0.75
 
-            // Animar a 90% después de un breve momento
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                progressWidth = 0.9
+                // Animar a 90% después de un breve momento
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    progressWidth = 0.9
+                }
             }
         }
     }

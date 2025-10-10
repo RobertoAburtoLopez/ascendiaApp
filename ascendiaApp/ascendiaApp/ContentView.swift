@@ -12,9 +12,11 @@ struct ContentView: View {
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var showRegisterView = false
+    @State private var navigateToHome = false
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             // Fondo con degradado suave
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -116,7 +118,15 @@ struct ContentView: View {
 
                         // Botón de iniciar sesión
                         Button(action: {
-                            // Acción de inicio de sesión
+                            // Validación simple: si hay email y password, navegar
+                            if !email.isEmpty && !password.isEmpty {
+                                #if os(iOS)
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                #endif
+
+                                navigateToHome = true
+                            }
                         }) {
                             Text("Iniciar sesión")
                                 .font(.system(size: 17, weight: .semibold))
@@ -168,6 +178,9 @@ struct ContentView: View {
                     }
                     .padding(.bottom, 40)
             }
+            .navigationDestination(isPresented: $navigateToHome) {
+                HomeView()
+            }
         }
         #if os(iOS)
         .fullScreenCover(isPresented: $showRegisterView) {
@@ -178,6 +191,7 @@ struct ContentView: View {
             RegisterView()
         }
         #endif
+        }
     }
 }
 
