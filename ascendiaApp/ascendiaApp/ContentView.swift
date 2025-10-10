@@ -58,12 +58,12 @@ struct ContentView: View {
                                 .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8))
 
                             TextField("example@email.com", text: $email)
-                                #if os(iOS)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                #endif
                                 .textContentType(.emailAddress)
                                 .autocorrectionDisabled()
+                                #if os(iOS)
+                                .keyboardType(.emailAddress)
+                                .textInputAutocapitalization(.never)
+                                #endif
                                 .padding()
                                 .background(Color.white)
                                 .overlay(
@@ -167,7 +167,6 @@ struct ContentView: View {
                         .padding(.horizontal, 30)
                     }
                     .padding(.bottom, 40)
-                }
             }
         }
         #if os(iOS)

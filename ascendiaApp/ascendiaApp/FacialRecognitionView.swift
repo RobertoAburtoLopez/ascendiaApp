@@ -6,15 +6,13 @@
 //
 
 import SwiftUI
-import AVFoundation
+// import AVFoundation // Temporalmente comentado para preview
 
 struct FacialRecognitionView: View {
-    // Estados de la cámara
-    @StateObject private var cameraManager = CameraManager()
+    // Estados
     @State private var isCapturing = false
     @State private var captureError = ""
     @State private var progressWidth: CGFloat = 0.9
-    @State private var showPermissionAlert = false
     @State private var showSuccessNavigation = false
 
     var isPreview: Bool = false
@@ -138,75 +136,52 @@ struct FacialRecognitionView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
 
-                        // Vista previa de cámara
+                        // Vista previa de cámara (placeholder temporal)
                         ZStack {
                             // Fondo oscuro
                             RoundedRectangle(cornerRadius: 20)
                                 .fill(Color(red: 0.06, green: 0.06, blue: 0.1))
                                 .frame(height: 380)
 
-                            if isPreview || cameraManager.isAuthorized {
-                                // Preview de cámara (o placeholder en preview)
-                                if isPreview {
-                                    // Placeholder para preview
-                                    Color(red: 0.1, green: 0.1, blue: 0.15)
-                                        .frame(height: 380)
-                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                } else {
-                                    FacialCameraPreview(cameraManager: cameraManager)
-                                        .frame(height: 380)
-                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                }
+                            // Placeholder para preview (temporalmente siempre visible)
+                            Color(red: 0.1, green: 0.1, blue: 0.15)
+                                .frame(height: 380)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
 
-                                // Overlay con guías
-                                ZStack {
-                                    // Indicador de grabación
-                                    VStack {
-                                        HStack {
-                                            if isCapturing {
-                                                HStack(spacing: 6) {
-                                                    Circle()
-                                                        .fill(Color.red)
-                                                        .frame(width: 8, height: 8)
-                                                        .opacity(cameraManager.isRecording ? 1.0 : 0.3)
-                                                        .animation(.easeInOut(duration: 0.8).repeatForever(), value: cameraManager.isRecording)
+                            // Overlay con guías
+                            ZStack {
+                                // Indicador de grabación
+                                VStack {
+                                    HStack {
+                                        if isCapturing {
+                                            HStack(spacing: 6) {
+                                                Circle()
+                                                    .fill(Color.red)
+                                                    .frame(width: 8, height: 8)
+                                                    .opacity(0.3)
 
-                                                    Text("Capturando...")
-                                                        .font(.system(size: 12, weight: .medium))
-                                                        .foregroundColor(.white)
-                                                }
-                                                .padding(.horizontal, 12)
-                                                .padding(.vertical, 6)
-                                                .background(Color.black.opacity(0.6))
-                                                .cornerRadius(12)
+                                                Text("Capturando...")
+                                                    .font(.system(size: 12, weight: .medium))
+                                                    .foregroundColor(.white)
                                             }
-
-                                            Spacer()
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Color.black.opacity(0.6))
+                                            .cornerRadius(12)
                                         }
-                                        .padding(16)
 
                                         Spacer()
                                     }
+                                    .padding(16)
 
-                                    // Círculo guía para el rostro
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: 3)
-                                        .frame(width: 220, height: 220)
-                                        .shadow(color: Color.black.opacity(0.3), radius: 8)
+                                    Spacer()
                                 }
-                            } else {
-                                // Mensaje de permiso
-                                VStack(spacing: 16) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 50))
-                                        .foregroundColor(.white.opacity(0.5))
 
-                                    Text("Acceso a cámara requerido")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
-                                }
-                                .frame(height: 380)
+                                // Círculo guía para el rostro
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 3)
+                                    .frame(width: 220, height: 220)
+                                    .shadow(color: Color.black.opacity(0.3), radius: 8)
                             }
                         }
                         .overlay(
@@ -283,10 +258,10 @@ struct FacialRecognitionView: View {
                             .cornerRadius(16)
                             .shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
-                        .disabled(!isPreview && !cameraManager.isAuthorized || isCapturing)
-                        .opacity((isPreview || cameraManager.isAuthorized) && !isCapturing ? 1.0 : 0.5)
+                        .disabled(isCapturing)
+                        .opacity(isCapturing ? 0.5 : 1.0)
                         .accessibilityLabel("Botón iniciar verificación facial")
-                        .accessibilityHint(cameraManager.isAuthorized ? "Toca para iniciar la verificación facial" : "Necesitas otorgar permisos de cámara")
+                        .accessibilityHint("Toca para iniciar la verificación facial")
                         .padding(.top, 8)
 
                         // Botón repetir (solo si hay error)
@@ -339,16 +314,6 @@ struct FacialRecognitionView: View {
                 }
             }
         }
-        .alert("Permiso de Cámara Requerido", isPresented: $showPermissionAlert) {
-            Button("Configuración") {
-                openSettings()
-            }
-            Button("Cancelar", role: .cancel) {
-                dismiss()
-            }
-        } message: {
-            Text("Por favor, permite el acceso a la cámara en Configuración para continuar con la verificación facial.")
-        }
         .onAppear {
             // Iniciar desde 75%
             progressWidth = 0.75
@@ -357,26 +322,12 @@ struct FacialRecognitionView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 progressWidth = 0.9
             }
-
-            // Solicitar permisos de cámara (solo si no es preview)
-            if !isPreview {
-                cameraManager.requestPermission { granted in
-                    if !granted {
-                        showPermissionAlert = true
-                    }
-                }
-            }
         }
     }
 
     // MARK: - Funciones
 
     private func startVerification() {
-        guard cameraManager.isAuthorized else {
-            showPermissionAlert = true
-            return
-        }
-
         #if os(iOS)
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
@@ -387,34 +338,19 @@ struct FacialRecognitionView: View {
             captureError = ""
         }
 
-        cameraManager.isRecording = true
-
-        // Simular captura y procesamiento
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            // Simular resultado aleatorio
-            let success = Bool.random()
-
+        // Simular captura y procesamiento (solo frontend)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
                 isCapturing = false
-                cameraManager.isRecording = false
 
-                if success {
-                    #if os(iOS)
-                    let notificationFeedback = UINotificationFeedbackGenerator()
-                    notificationFeedback.notificationOccurred(.success)
-                    #endif
+                #if os(iOS)
+                let notificationFeedback = UINotificationFeedbackGenerator()
+                notificationFeedback.notificationOccurred(.success)
+                #endif
 
-                    // TODO: Navegar a confirmación o siguiente paso
-                    print("✅ Reconocimiento facial exitoso")
-                    showSuccessNavigation = true
-                } else {
-                    captureError = "No se pudo verificar tu rostro. Asegúrate de tener buena iluminación y posicionar tu cara en el círculo."
-
-                    #if os(iOS)
-                    let notificationFeedback = UINotificationFeedbackGenerator()
-                    notificationFeedback.notificationOccurred(.error)
-                    #endif
-                }
+                // Simulación exitosa siempre
+                print("✅ Reconocimiento facial exitoso (simulado)")
+                showSuccessNavigation = true
             }
         }
     }
@@ -429,115 +365,107 @@ struct FacialRecognitionView: View {
         impactFeedback.impactOccurred()
         #endif
     }
-
-    private func openSettings() {
-        #if os(iOS)
-        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(settingsURL)
-        }
-        #endif
-    }
 }
 
-// MARK: - Camera Manager
+// MARK: - Camera Manager (Temporalmente comentado)
 
-class CameraManager: NSObject, ObservableObject {
-    @Published var isAuthorized = false
-    @Published var isRecording = false
-    @Published var session = AVCaptureSession()
-    @Published var preview = AVCaptureVideoPreviewLayer()
+// class CameraManager: NSObject, ObservableObject {
+//     @Published var isAuthorized = false
+//     @Published var isRecording = false
+//     @Published var session = AVCaptureSession()
+//     @Published var preview = AVCaptureVideoPreviewLayer()
+//
+//     override init() {
+//         super.init()
+//     }
+//
+//     func requestPermission(completion: @escaping (Bool) -> Void) {
+//         switch AVCaptureDevice.authorizationStatus(for: .video) {
+//         case .authorized:
+//             isAuthorized = true
+//             setupCamera()
+//             completion(true)
+//         case .notDetermined:
+//             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+//                 DispatchQueue.main.async {
+//                     self?.isAuthorized = granted
+//                     if granted {
+//                         self?.setupCamera()
+//                     }
+//                     completion(granted)
+//                 }
+//             }
+//         case .denied, .restricted:
+//             isAuthorized = false
+//             completion(false)
+//         @unknown default:
+//             isAuthorized = false
+//             completion(false)
+//         }
+//     }
+//
+//     private func setupCamera() {
+//         do {
+//             session.beginConfiguration()
+//
+//             guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
+//                 return
+//             }
+//
+//             let input = try AVCaptureDeviceInput(device: device)
+//
+//             if session.canAddInput(input) {
+//                 session.addInput(input)
+//             }
+//
+//             session.commitConfiguration()
+//
+//             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                 self?.session.startRunning()
+//             }
+//         } catch {
+//             print("Error setting up camera: \(error.localizedDescription)")
+//         }
+//     }
+//
+//     func stopCamera() {
+//         session.stopRunning()
+//     }
+// }
 
-    override init() {
-        super.init()
-    }
+// MARK: - Facial Camera Preview (Temporalmente comentado)
 
-    func requestPermission(completion: @escaping (Bool) -> Void) {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            isAuthorized = true
-            setupCamera()
-            completion(true)
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-                DispatchQueue.main.async {
-                    self?.isAuthorized = granted
-                    if granted {
-                        self?.setupCamera()
-                    }
-                    completion(granted)
-                }
-            }
-        case .denied, .restricted:
-            isAuthorized = false
-            completion(false)
-        @unknown default:
-            isAuthorized = false
-            completion(false)
-        }
-    }
-
-    private func setupCamera() {
-        do {
-            session.beginConfiguration()
-
-            guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
-                return
-            }
-
-            let input = try AVCaptureDeviceInput(device: device)
-
-            if session.canAddInput(input) {
-                session.addInput(input)
-            }
-
-            session.commitConfiguration()
-
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.session.startRunning()
-            }
-        } catch {
-            print("Error setting up camera: \(error.localizedDescription)")
-        }
-    }
-
-    func stopCamera() {
-        session.stopRunning()
-    }
-}
-
-// MARK: - Facial Camera Preview
-
-#if os(iOS)
-struct FacialCameraPreview: UIViewRepresentable {
-    @ObservedObject var cameraManager: CameraManager
-
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: .zero)
-
-        cameraManager.preview = AVCaptureVideoPreviewLayer(session: cameraManager.session)
-        cameraManager.preview.frame = view.bounds
-        cameraManager.preview.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(cameraManager.preview)
-
-        return view
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {
-        DispatchQueue.main.async {
-            cameraManager.preview.frame = uiView.bounds
-        }
-    }
-}
-#else
-struct FacialCameraPreview: View {
-    @ObservedObject var cameraManager: CameraManager
-
-    var body: some View {
-        Rectangle()
-            .fill(Color.black)
-    }
-}
-#endif
+// #if os(iOS)
+// struct FacialCameraPreview: UIViewRepresentable {
+//     @ObservedObject var cameraManager: CameraManager
+//
+//     func makeUIView(context: Context) -> UIView {
+//         let view = UIView(frame: .zero)
+//
+//         cameraManager.preview = AVCaptureVideoPreviewLayer(session: cameraManager.session)
+//         cameraManager.preview.frame = view.bounds
+//         cameraManager.preview.videoGravity = .resizeAspectFill
+//         view.layer.addSublayer(cameraManager.preview)
+//
+//         return view
+//     }
+//
+//     func updateUIView(_ uiView: UIView, context: Context) {
+//         DispatchQueue.main.async {
+//             cameraManager.preview.frame = uiView.bounds
+//         }
+//     }
+// }
+// #else
+// struct FacialCameraPreview: View {
+//     @ObservedObject var cameraManager: CameraManager
+//
+//     var body: some View {
+//         Rectangle()
+//             .fill(Color.black)
+//     }
+// }
+// #endif
 
 // MARK: - Instruction Row Component
 
