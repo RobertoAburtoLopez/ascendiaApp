@@ -27,39 +27,27 @@ struct ContentView: View {
             .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 30) {
-                    // Logo y título
-                    VStack(spacing: 16) {
-                        // Ícono circular con letra A
-                        ZStack {
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color(red: 0.6, green: 0.4, blue: 0.8),
-                                    Color(red: 0.9, green: 0.2, blue: 0.6)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                            .frame(width: 100, height: 100)
-                            .clipShape(RoundedRectangle(cornerRadius: 25))
-
-                            Text("A")
-                                .font(.system(size: 60, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                VStack(spacing: 16) {
+                    // Logo PNG
+                    Image("ascendia_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
                         .shadow(color: Color.purple.opacity(0.3), radius: 10, x: 0, y: 5)
-
-                        // Nombre de la app
-                        Text("ASCENDIA")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8))
-
-                        // Subtítulo
-                        Text("Red Social Segura para Mujeres")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(Color(red: 0.7, green: 0.5, blue: 0.85))
-                    }
-                    .padding(.top, 60)
+                        .accessibilityLabel("Logo de Ascendia")
+                    
+                    // Nombre de la app
+                    Text("ASCENDIA")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8))
+                    
+                    // Subtítulo
+                    Text("Red Social Segura e Inclusiva")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color(red: 0.7, green: 0.5, blue: 0.85))
+                }
+                .padding(.top, 60)
 
                     // Tarjeta de inicio de sesión
                     VStack(spacing: 20) {
