@@ -1173,6 +1173,13 @@ struct MapaView: View {
     @State private var contactosVivos: [ContactoVivo] = ContactoVivo.sampleContactos
     @State private var puntosSeguros: [PuntoSeguro] = PuntoSeguro.samplePuntos
 
+    // Estados para camiones y eventos del Mundial
+    @State private var camionesDisponibles: [CamionMundial] = CamionMundial.sampleCamiones
+    @State private var filtrosCamiones = FiltrosCamion()
+    @State private var camionSeleccionado: CamionMundial? = nil
+    @State private var mostrarDetalleEvento = false
+    @State private var eventoSeleccionado: EventoMundial? = nil
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -1447,22 +1454,95 @@ struct MapaView: View {
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel("Sección de contactos en vivo")
 
-                        // PUNTOS SEGUROS CERCANOS
+                        // CAMIONES DISPONIBLES PARA EVENTOS DEL MUNDIAL
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Puntos Seguros Cercanos")
-                                .font(.system(size: 22, weight: .semibold))
-                                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                                .padding(.horizontal, 20)
+                            // Header con contador
+                            HStack(alignment: .center, spacing: 12) {
+                                Text("Camiones Disponibles")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
 
-                            VStack(spacing: 12) {
-                                ForEach(puntosSeguros) { punto in
-                                    PuntoSeguroCardView(punto: punto)
-                                        .padding(.horizontal, 20)
+                                // Badge contador
+                                Text("\(camionesFiltrados.count) disponibles")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.15))
+                                    .cornerRadius(12)
+                            }
+                            .padding(.horizontal, 20)
+
+                            // Estado vacío o lista de tarjetas
+                            if camionesFiltrados.isEmpty {
+                                // Estado vacío
+                                VStack(spacing: 16) {
+                                    Image(systemName: "bus.fill")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.3))
+
+                                    Text("No hay camiones disponibles")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.3))
+
+                                    Text("Intenta ajustar los filtros para ver más opciones")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                                        .multilineTextAlignment(.center)
+
+                                    Button(action: {
+                                        filtrosCamiones = FiltrosCamion()
+                                    }) {
+                                        Text("Limpiar filtros")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.8))
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color(red: 0.6, green: 0.4, blue: 0.8), lineWidth: 2)
+                                            )
+                                            .cornerRadius(12)
+                                    }
                                 }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                                .padding(.horizontal, 20)
+                                .background(Color.white)
+                                .cornerRadius(20)
+                                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+                                .padding(.horizontal, 20)
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("No hay camiones disponibles con los filtros actuales")
+                            } else {
+                                // Lista de tarjetas de camiones
+                                VStack(spacing: 16) {
+                                    ForEach(camionesFiltrados) { camion in
+                                        BusTripCardView(
+                                            camion: camion,
+                                            onReservar: {
+                                                camionSeleccionado = camion
+                                            },
+                                            onVerEnMapa: {
+                                                // TODO: Centrar mapa y mostrar polyline
+                                                #if os(iOS)
+                                                let impact = UIImpactFeedbackGenerator(style: .light)
+                                                impact.impactOccurred()
+                                                #endif
+                                            }
+                                        )
+                                        .onTapGesture {
+                                            eventoSeleccionado = camion.ruta.destino
+                                            mostrarDetalleEvento = true
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 20)
                             }
                         }
                         .accessibilityElement(children: .contain)
-                        .accessibilityLabel("Sección de puntos seguros cercanos")
+                        .accessibilityLabel("Sección de camiones disponibles para eventos del Mundial")
 
                         // COMPARTIR UBICACIÓN
                         VStack(alignment: .leading, spacing: 16) {
@@ -1583,7 +1663,26 @@ struct MapaView: View {
                     await refreshMapa()
                 }
             }
+            .sheet(isPresented: $showFilterSheet) {
+                FiltrosCamionesSheet(filtros: $filtrosCamiones)
+            }
+            .fullScreenCover(item: $camionSeleccionado) { camion in
+                ReservaCamionFlowView(camion: camion)
+            }
+            .sheet(isPresented: $mostrarDetalleEvento) {
+                if let evento = eventoSeleccionado {
+                    NavigationStack {
+                        EventoDetailView(evento: evento)
+                    }
+                }
+            }
         }
+    }
+
+    // MARK: - Computed Properties
+
+    private var camionesFiltrados: [CamionMundial] {
+        filtrosCamiones.aplicar(a: camionesDisponibles)
     }
 
     // MARK: - Mini Avatar Helper
